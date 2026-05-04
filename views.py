@@ -26,12 +26,22 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
 
 def download_stage(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Submission] = get_object_or_404(Submission, id=pk)
-    return HttpResponse(
-        BinSlot.serialize(target.stage_data),
-        content_type="application/octet-stream",
-        headers={
-            "Content-Disposition": f'attachment; filename="{slugify(target.name)}.bin"'
-        },
+    return (
+        HttpResponse(
+            XmlSlot.serialize(target.stage_data),
+            content_type="application/xml",
+            headers={
+                "Content-Disposition": f'attachment; filename="{slugify(target.name)}.xml"'
+            },
+        )
+        if request.GET.get("xml", "false") == "true"
+        else HttpResponse(
+            BinSlot.serialize(target.stage_data),
+            content_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f'attachment; filename="{slugify(target.name)}.bin"'
+            },
+        )
     )
 
 
