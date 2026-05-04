@@ -73,4 +73,4 @@ def submit_stage(request: HttpRequest) -> HttpResponse:
                 return HttpResponseRedirect(f"/kororinpa/{new.id}")  # type: ignore[attr-defined]
     else:
         form = SubmitStageForm()
-    return render(request, "kororinpa/new.html", {"form": form})
+    return render(request, "kororinpa_stage_hub/new.html", {"form": form})
