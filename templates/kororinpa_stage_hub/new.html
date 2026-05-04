@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Submit New Stage{% endblock %}
+{% block content %}
+<h1 style="text-align:center;">Submit New Stage</h1>
+<form action="{% url "kororinpa_stage_hub:new" %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form }}
+    <br /><input type="submit" value="Submit" />
+</form>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ submission.name }}{% endblock %}
+{% block content %}
+<h1 style="margin-bottom:0px;text-align:center;">{{ submission.name }}</h1>
+<p style="margin-bottom:0px;margin-top:0px;text-align:center;">By {{ submission.creator.username }}</p>
+{% if submission.modified %}
+    <p style="font-size:small;margin-bottom:0px;margin-top:0px;text-align:center;"><i>Released {{ submission.released }}</i></p>
+    <p style="font-size:small;margin-top:0px;text-align:center;"><i>Updated {{ submission.updated }}</i></p>
+{% else %}
+    <p style="font-size:small;margin-top:0px;text-align:center;"><i>Released {{ submission.released }}</i></p>
+{% endif %}
+{% if submission.embed %}
+    <iframe allow="clipboard-write;encrypted-media;picture-in-picture;web-share" allowfullscreen frameborder="0" height=720 referrerpolicy="strict-origin-when-cross-origin" src="{{ submission.embed }}" width=100%></iframe>
+{% endif %}
+{% if submission.description %}
+    <p>{{ submission.description|linebreaksbr }}</p>
+{% endif %}
+<h3>Track</h3>
+<p><a href="https://www.youtube.com/watch?v={{ track_id }}&list=PLalaKypXw_gWXIVxJyfCJWygXc55BSzId">{{ track_name }}</a></p>
+<h3><a href="{% url 'kororinpa_stage_hub:download_stage' submission.id %}">Download</a></h3>
+{% endblock %}
