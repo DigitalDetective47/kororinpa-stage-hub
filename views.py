@@ -26,23 +26,27 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
 
 def download_stage(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Submission] = get_object_or_404(Submission, id=pk)
-    return (
-        HttpResponse(
-            XmlSlot.serialize(target.stage_data),
+    target.stage_data.open("rb")
+    content: Final[bytes] = target.stage_data.read()
+    ret: HttpResponse
+    if request.GET.get("xml", "false") == "true":
+        ret = HttpResponse(
+            BinSlot.decompress(content),
             content_type="application/xml",
             headers={
                 "Content-Disposition": f'attachment; filename="{slugify(target.name)}.xml"'
             },
         )
-        if request.GET.get("xml", "false") == "true"
-        else HttpResponse(
-            BinSlot.serialize(target.stage_data),
+    else:
+        ret = HttpResponse(
+            content,
             content_type="application/octet-stream",
             headers={
                 "Content-Disposition": f'attachment; filename="{slugify(target.name)}.bin"'
             },
         )
-    )
+    target.stage_data.close()
+    return ret
 
 
 @login_required
@@ -51,26 +55,10 @@ def submit_stage(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = SubmitStageForm(request.POST, request.FILES)
         if form.is_valid():
-            file: Final[Optional[UploadedFile]] = form.files.get("stage_data")
-            if file is not None:
-                untyped_content: Final[str | bytes] = file.read()
-                content: Final[bytes] = (
-                    untyped_content.encode("shift_jis", "xmlcharrefreplace")
-                    if isinstance(untyped_content, str)
-                    else bytes(untyped_content)
-                )
-                new: Final[Submission] = Submission(
-                    name=form.cleaned_data["name"],
-                    stage_data=(XmlSlot if content[0] else BinSlot).deserialize(
-                        content
-                    ),
-                    creator=request.user,
-                    embed=form.cleaned_data["embed"],
-                    description=form.cleaned_data["description"],
-                    music=form.cleaned_data["music"],
-                )
-                new.save()
-                return HttpResponseRedirect(f"/kororinpa/{new.id}")  # type: ignore[attr-defined]
+            new: Final[Submission] = form.save(False)
+            new.creator = request.user
+            new.save()
+            return HttpResponseRedirect(f"/kororinpa/stage/{new.id}")  # type: ignore[attr-defined]
     else:
         form = SubmitStageForm()
     return render(request, "kororinpa_stage_hub/new.html", {"form": form})
