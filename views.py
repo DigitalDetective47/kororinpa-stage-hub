@@ -1,11 +1,10 @@
-from typing import Final, Optional
+from typing import Final
 
 from django.contrib.auth.decorators import login_required
-from django.core.files.uploadedfile import UploadedFile
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.utils.text import slugify
-from koro import BinSlot, XmlSlot
+from koro import BinSlot
 
 from .forms import SubmitStageForm
 from .models import Submission, music_choices, music_ytids
