@@ -43,11 +43,11 @@ class Submission(Model):
     creator: ForeignKey = ForeignKey(User, on_delete=RESTRICT)
     released: DateTimeField = DateTimeField(auto_now_add=True)
     updated: DateTimeField = DateTimeField(auto_now=True)
-    modified: BooleanField = BooleanField(default=False)
+    modified: BooleanField = BooleanField(default=False, db_default=False)
     embed: URLField = URLField(blank=True, null=True)
     description: TextField = TextField(blank=True)
     music: PositiveSmallIntegerField = PositiveSmallIntegerField(
-        default=8, choices=music_choices
+        default=8, db_default=8, choices=music_choices
     )
 
     class Meta:
