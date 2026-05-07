@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Editing {{ submission.name }}{% endblock %}
+{% block content %}
+<h1 style="text-align:center;">Editing {{ submission.name }}</h1>
+<form action="{% url "kororinpa_stage_hub:edit_stage" submission.id %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form }}
+    <br /><input type="submit" value="Submit" />
+</form>
+{% endblock %}

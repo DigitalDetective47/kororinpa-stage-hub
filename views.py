@@ -1,7 +1,12 @@
 from typing import Final
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+)
 from django.shortcuts import get_object_or_404, render
 from django.utils.text import slugify
 from koro import BinSlot
@@ -19,7 +24,39 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
             "submission": target,
             "track_id": music_ytids[target.music],
             "track_name": music_choices[target.music],
+            "edit_permission": request.user.is_authenticated
+            and (
+                target.creator == request.user
+                or request.user.has_perm(  # type: ignore[attr-defined]
+                    "kororinpa_stage_hub.change_submission"
+                )
+            ),
         },
+    )
+
+
+@login_required
+def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
+    target: Final[Submission] = get_object_or_404(Submission, id=pk)
+    if (
+        target.creator != request.user
+        and not request.user.has_perm(  # type: ignore[union-attr]
+            "kororinpa_stage_hub.change_submission"
+        )
+    ):
+        return HttpResponseForbidden("You do not have permission to edit this stage")
+    form: SubmitStageForm
+    if request.method == "POST":
+        form = SubmitStageForm(request.POST, request.FILES, instance=target)
+        if form.is_valid():
+            form.save(False)
+            target.modified = True
+            target.save()
+            return HttpResponseRedirect(f"/kororinpa/stage/{target.id}")  # type: ignore[attr-defined]
+    else:
+        form = SubmitStageForm(instance=target)
+    return render(
+        request, "kororinpa_stage_hub/edit.html", {"form": form, "submission": target}
     )
 
 
