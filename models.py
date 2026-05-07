@@ -30,7 +30,7 @@ with open("kororinpa_stage_hub/music.csv", newline="") as f:
         DictReader(f)
     )  # type: ignore[assignment]
     music_choices: Final[Mapping[int, str]] = {
-        i: row["Title"] for i, row in enumerate(readers[0], 1)
+        i: row["Title"] for i, row in enumerate(readers[0])
     }
     music_ytids: Final[Sequence[str]] = tuple(
         row["YouTube Video ID"] for row in readers[1]
@@ -47,7 +47,7 @@ class Submission(Model):
     embed: URLField = URLField(blank=True, null=True)
     description: TextField = TextField(blank=True)
     music: PositiveSmallIntegerField = PositiveSmallIntegerField(
-        default=9, choices=music_choices
+        default=8, choices=music_choices
     )
 
     class Meta:
@@ -56,8 +56,7 @@ class Submission(Model):
                 name="updated_after_released", condition=Q(updated__gte=F("released"))
             ),
             CheckConstraint(
-                name="music_in_range",
-                condition=Q(music__gt=0, music__lte=len(music_choices)),
+                name="music_in_range", condition=Q(music__lt=len(music_choices))
             ),
         ]
 

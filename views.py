@@ -17,7 +17,7 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
         "kororinpa_stage_hub/index.html",
         {
             "submission": target,
-            "track_id": music_ytids[target.music - 1],
+            "track_id": music_ytids[target.music],
             "track_name": music_choices[target.music],
         },
     )
