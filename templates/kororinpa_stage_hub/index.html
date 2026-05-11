@@ -18,7 +18,11 @@
 <h3>Track</h3>
 <p><a href="https://www.youtube.com/watch?v={{ track_id }}&list=PLalaKypXw_gWXIVxJyfCJWygXc55BSzId">{{ track_name }}</a></p>
 <h3><a href="{% url 'kororinpa_stage_hub:download_stage' submission.id %}">Download</a></h3>
-{% if edit_permission %}
+{% if edit_permission and delete_permission %}
+<p><a href="{% url 'kororinpa_stage_hub:edit_stage' submission.id %}">Edit</a> | <a href="{% url 'kororinpa_stage_hub:delete_stage' submission.id %}">Delete</a></p>
+{% elif edit_permission %}
 <p><a href="{% url 'kororinpa_stage_hub:edit_stage' submission.id %}">Edit</a></p>
+{% elif delete_permission %}
+<p><a href="{% url 'kororinpa_stage_hub:delete_stage' submission.id %}">Delete</a></p>
 {% endif %}
 {% endblock %}

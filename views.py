@@ -31,6 +31,13 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
                     "kororinpa_stage_hub.change_submission"
                 )
             ),
+            "delete_permission": request.user.is_authenticated
+            and (
+                target.creator == request.user
+                or request.user.has_perm(  # type: ignore[attr-defined]
+                    "kororinpa_stage_hub.delete_submission"
+                )
+            ),
         },
     )
 
@@ -58,6 +65,25 @@ def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
     return render(
         request, "kororinpa_stage_hub/edit.html", {"form": form, "submission": target}
     )
+
+
+@login_required
+def delete_stage(request: HttpRequest, pk: int) -> HttpResponse:
+    target: Final[Submission] = get_object_or_404(Submission, id=pk)
+    if (
+        target.creator != request.user
+        and not request.user.has_perm(  # type: ignore[union-attr]
+            "kororinpa_stage_hub.delete_submission"
+        )
+    ):
+        return HttpResponseForbidden("You do not have permission to delete this stage")
+    if request.method == "POST":
+        ret: HttpResponse = render(
+            request, "kororinpa_stage_hub/post_delete.html", {"name": target.name}
+        )
+        target.delete()
+        return ret
+    return render(request, "kororinpa_stage_hub/delete.html", {"submission": target})
 
 
 def download_stage(request: HttpRequest, pk: int) -> HttpResponse:
