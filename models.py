@@ -21,6 +21,7 @@ from django.db.models import (
 )
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import reverse
 from koro import BinSlot
 
 with open("kororinpa_stage_hub/music.csv", newline="") as f:
@@ -62,6 +63,9 @@ class Submission(Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def get_absolute_url(self) -> str:
+        return reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": self.pk})
 
 
 @receiver(post_save, sender=Submission)
