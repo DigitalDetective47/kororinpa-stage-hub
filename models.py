@@ -6,7 +6,6 @@ from typing import Any, Final
 from django.contrib.auth.models import User
 from django.db.models import (
     RESTRICT,
-    BooleanField,
     CharField,
     CheckConstraint,
     DateTimeField,
@@ -19,7 +18,8 @@ from django.db.models import (
     TextField,
     URLField,
 )
-from django.db.models.signals import post_save
+from django.db.models.functions import Now
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.urls import reverse
 from koro import BinSlot
@@ -42,9 +42,8 @@ class Submission(Model):
     name: CharField = CharField(max_length=255)
     stage_data: FileField = FileField()
     creator: ForeignKey = ForeignKey(User, on_delete=RESTRICT)
-    released: DateTimeField = DateTimeField(auto_now_add=True)
-    updated: DateTimeField = DateTimeField(auto_now=True)
-    modified: BooleanField = BooleanField(default=False, db_default=False)
+    released: DateTimeField = DateTimeField(default=Now(), db_default=Now())
+    updated: DateTimeField = DateTimeField(default=Now(), db_default=Now())
     embed: URLField = URLField(blank=True, null=True)
     description: TextField = TextField(blank=True)
     music: PositiveSmallIntegerField = PositiveSmallIntegerField(
@@ -66,6 +65,11 @@ class Submission(Model):
 
     def get_absolute_url(self) -> str:
         return reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": self.pk})
+
+
+@receiver(pre_save, sender=Submission)
+def set_dates(sender: Any, instance: Submission, **kwargs: Any) -> None:
+    instance.updated = Now()
 
 
 @receiver(post_save, sender=Submission)

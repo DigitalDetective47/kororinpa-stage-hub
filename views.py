@@ -56,9 +56,7 @@ def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
     if request.method == "POST":
         form = SubmitStageForm(request.POST, request.FILES, instance=target)
         if form.is_valid():
-            form.save(False)
-            target.modified = True
-            target.save()
+            form.save()
             return HttpResponseRedirect(f"/kororinpa/stage/{target.id}")  # type: ignore[attr-defined]
     else:
         form = SubmitStageForm(instance=target)

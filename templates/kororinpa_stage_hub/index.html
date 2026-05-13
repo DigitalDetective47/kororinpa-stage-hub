@@ -3,11 +3,11 @@
 {% block content %}
 <h1 style="margin-bottom:0px;text-align:center;">{{ submission.name }}</h1>
 <p style="margin-bottom:0px;margin-top:0px;text-align:center;">By {{ submission.creator.username }}</p>
-{% if submission.modified %}
+{% if submission.updated == submission.released %}
+    <p style="font-size:small;margin-top:0px;text-align:center;"><i>Released {{ submission.released }}</i></p>
+{% else %}
     <p style="font-size:small;margin-bottom:0px;margin-top:0px;text-align:center;"><i>Released {{ submission.released }}</i></p>
     <p style="font-size:small;margin-top:0px;text-align:center;"><i>Updated {{ submission.updated }}</i></p>
-{% else %}
-    <p style="font-size:small;margin-top:0px;text-align:center;"><i>Released {{ submission.released }}</i></p>
 {% endif %}
 {% if submission.embed %}
     <iframe allow="clipboard-write;encrypted-media;picture-in-picture;web-share" allowfullscreen frameborder="0" height=720 referrerpolicy="strict-origin-when-cross-origin" src="{{ submission.embed }}" width=100%></iframe>
