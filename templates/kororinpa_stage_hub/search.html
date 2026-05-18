@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Search for Stages{% endblock %}
+{% block content %}
+<h1 style="text-align:center;">Search for Stages {{ submission.name }}</h1>
+<form action="{% url "kororinpa_stage_hub:search_results_stage" %}">
+    {{ form }}
+    <br /><input type="submit" value="Submit" />
+</form>
+{% endblock %}

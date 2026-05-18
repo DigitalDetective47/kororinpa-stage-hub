@@ -1,6 +1,14 @@
 from django.urls import path
 
-from .views import delete_stage, download_stage, edit_stage, submit_stage, view_stage
+from .views import (
+    delete_stage,
+    download_stage,
+    edit_stage,
+    search_results_stage,
+    search_stage,
+    submit_stage,
+    view_stage,
+)
 
 app_name = "kororinpa_stage_hub"
 urlpatterns = [
@@ -9,4 +17,6 @@ urlpatterns = [
     path("stage/<int:pk>/delete", delete_stage, name="delete_stage"),
     path("stage/<int:pk>/download", download_stage, name="download_stage"),
     path("stages/new", submit_stage, name="submit_stage"),
+    path("stages/search", search_stage, name="search_stage"),
+    path("stages/search_results", search_results_stage, name="search_results_stage"),
 ]

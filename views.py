@@ -1,6 +1,9 @@
-from typing import Final
+from functools import reduce
+from operator import and_, or_
+from typing import Final, cast
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Case, F, Q, QuerySet, When
 from django.http import (
     HttpRequest,
     HttpResponse,
@@ -11,7 +14,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils.text import slugify
 from koro import BinSlot
 
-from .forms import SubmitStageForm
+from .forms import SearchStageForm, SubmitStageForm
 from .models import Submission, music_choices, music_ytids
 
 
@@ -122,3 +125,100 @@ def submit_stage(request: HttpRequest) -> HttpResponse:
     else:
         form = SubmitStageForm()
     return render(request, "kororinpa_stage_hub/new.html", {"form": form})
+
+
+def search_stage(request: HttpRequest) -> HttpResponse:
+    return render(
+        request,
+        "kororinpa_stage_hub/search.html",
+        {"form": SearchStageForm(request.GET or None)},
+    )
+
+
+def search_results_stage(request: HttpRequest) -> HttpResponse:
+    form: Final[SearchStageForm] = SearchStageForm(request.GET)
+    if not form.is_valid():
+        return HttpResponseRedirect(
+            f"/kororinpa/stages/search?{request.GET.urlencode()}", True
+        )
+    query: QuerySet = Submission.objects.order_by(
+        ("-" if form.cleaned_data["sort_direction"] == "desc" else "")
+        + form.cleaned_data["sort"]
+    )
+    if form.cleaned_data["released_after"] is not None:
+        query = query.filter(released__gt=form.cleaned_data["released_after"])
+    if form.cleaned_data["released_before"] is not None:
+        query = query.filter(released__lt=form.cleaned_data["released_before"])
+    if form.cleaned_data["updated_after"] is not None:
+        query = query.filter(updated__gt=form.cleaned_data["updated_after"])
+    if form.cleaned_data["updated_before"] is not None:
+        query = query.filter(updated__lt=form.cleaned_data["updated_before"])
+    if form.cleaned_data["creator"] is not None:
+        query = query.filter(creator=form.cleaned_data["creator"])
+    if form.cleaned_data["name"]:
+        if form.cleaned_data["case_sensetive"]:
+            match form.cleaned_data["match"]:
+                case "phrase":
+                    query = query.filter(name__contains=form.cleaned_data["name"])
+                case "all":
+                    query = query.filter(
+                        reduce(
+                            and_,
+                            (
+                                Q(name__contains=word)
+                                for word in cast(str, form.cleaned_data["name"]).split()
+                            ),
+                        )
+                    )
+                case "any":
+                    query = query.filter(
+                        reduce(
+                            or_,
+                            (
+                                Q(name__contains=word)
+                                for word in cast(str, form.cleaned_data["name"]).split()
+                            ),
+                        )
+                    )
+                case "regex":
+                    query = query.filter(name__regex=form.cleaned_data["name"])
+        else:
+            match form.cleaned_data["match"]:
+                case "phrase":
+                    query = query.filter(name__icontains=form.cleaned_data["name"])
+                case "all":
+                    query = query.filter(
+                        reduce(
+                            and_,
+                            (
+                                Q(name__icontains=word)
+                                for word in cast(str, form.cleaned_data["name"]).split()
+                            ),
+                        )
+                    )
+                case "any":
+                    query = query.filter(
+                        reduce(
+                            or_,
+                            (
+                                Q(name__icontains=word)
+                                for word in cast(str, form.cleaned_data["name"]).split()
+                            ),
+                        )
+                    )
+                case "regex":
+                    query = query.filter(name__iregex=form.cleaned_data["name"])
+    return render(
+        request,
+        "kororinpa_stage_hub/search_results.html",
+        {
+            "query": request.GET.urlencode,
+            "results": query.values(
+                "id",
+                "name",
+                "released",
+                username=F("creator__username"),
+                updated_if_unique=Case(When(~Q(updated=F("released")), F("updated"))),
+            ),
+        },
+    )

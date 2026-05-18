@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Search Results{% endblock %}
+{% block content %}
+<h2><a href="{% url 'kororinpa_stage_hub:search_stage' %}?{{ query }}">Refine your search&hellip;</a></h2>
+{% if results %}
+    {% for submission in results %}
+        <h1 style="margin-bottom:0px;"><a href="{% url 'kororinpa_stage_hub:view_stage' submission.id %}">{{ submission.name }}</a></h1>
+        <p style="margin-bottom:0px;margin-top:0px;">By {{ submission.username }}</p>
+        {% if submission.updated_if_unique %}
+            <p style="font-size:small;margin-bottom:0px;margin-top:0px;"><i>Released {{ submission.released }}</i></p>
+            <p style="font-size:small;margin-top:0px;"><i>Updated {{ submission.updated_if_unique }}</i></p>
+        {% else %}
+            <p style="font-size:small;margin-top:0px;"><i>Released {{ submission.released }}</i></p>
+        {% endif %}
+    {% endfor %}
+{% else %}
+<p><i>No stages matched your search.</i></p>
+{% endif %}
+{% endblock %}
