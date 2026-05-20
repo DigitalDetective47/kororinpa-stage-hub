@@ -12,37 +12,65 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404, render
 from django.utils.text import slugify
+from django.views.decorators.http import require_http_methods
 from koro import BinSlot
 
 from .forms import SearchStageForm, SubmitStageForm
 from .models import Submission, music_choices, music_ytids
 
 
+@require_http_methods({"GET", "HEAD", "DELETE"})
 def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Submission] = get_object_or_404(Submission, id=pk)
-    return render(
-        request,
-        "kororinpa_stage_hub/index.html",
-        {
-            "submission": target,
-            "track_id": music_ytids[target.music],
-            "track_name": music_choices[target.music],
-            "edit_permission": request.user.is_authenticated
-            and (
-                target.creator == request.user
-                or request.user.has_perm(  # type: ignore[attr-defined]
-                    "kororinpa_stage_hub.change_submission"
+    match request.method:
+        case "GET" | "HEAD":
+            return render(
+                request,
+                "kororinpa_stage_hub/index.html",
+                {
+                    "submission": target,
+                    "track_id": music_ytids[target.music],
+                    "track_name": music_choices[target.music],
+                    "edit_permission": request.user.is_authenticated
+                    and (
+                        target.creator == request.user
+                        or request.user.has_perm(  # type: ignore[attr-defined]
+                            "kororinpa_stage_hub.change_submission"
+                        )
+                    ),
+                    "delete_permission": request.user.is_authenticated
+                    and (
+                        target.creator == request.user
+                        or request.user.has_perm(  # type: ignore[attr-defined]
+                            "kororinpa_stage_hub.delete_submission"
+                        )
+                    ),
+                },
+            )
+        case "DELETE":
+
+            @login_required
+            def delete_req(irequest: HttpRequest) -> HttpResponse:
+                if (
+                    target.creator != irequest.user
+                    and not irequest.user.has_perm(  # type: ignore[union-attr]
+                        "kororinpa_stage_hub.delete_submission"
+                    )
+                ):
+                    return HttpResponseForbidden(
+                        "You must be the owner of this stage or an administrator to delete it"
+                    )
+                ret: HttpResponse = render(
+                    irequest,
+                    "kororinpa_stage_hub/post_delete.html",
+                    {"name": target.name},
                 )
-            ),
-            "delete_permission": request.user.is_authenticated
-            and (
-                target.creator == request.user
-                or request.user.has_perm(  # type: ignore[attr-defined]
-                    "kororinpa_stage_hub.delete_submission"
-                )
-            ),
-        },
-    )
+                target.delete()
+                return ret
+
+            return delete_req(request)
+        case _:
+            raise ValueError("invalid request method")
 
 
 @login_required
@@ -77,13 +105,9 @@ def delete_stage(request: HttpRequest, pk: int) -> HttpResponse:
             "kororinpa_stage_hub.delete_submission"
         )
     ):
-        return HttpResponseForbidden("You do not have permission to delete this stage")
-    if request.method == "POST":
-        ret: HttpResponse = render(
-            request, "kororinpa_stage_hub/post_delete.html", {"name": target.name}
+        return HttpResponseForbidden(
+            "You must be the owner of this stage or an administrator to delete it"
         )
-        target.delete()
-        return ret
     return render(request, "kororinpa_stage_hub/delete.html", {"submission": target})
 
 
