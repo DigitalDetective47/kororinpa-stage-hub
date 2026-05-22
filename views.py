@@ -13,7 +13,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.text import slugify
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_safe
 from koro import BinSlot
 
 from .forms import SearchStageForm, SubmitStageForm
@@ -74,6 +74,7 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
             raise ValueError("invalid request method")
 
 
+@require_http_methods({"GET", "HEAD", "POST"})
 @login_required
 def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Submission] = get_object_or_404(Submission, id=pk)
@@ -85,20 +86,24 @@ def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
     ):
         return HttpResponseForbidden("You do not have permission to edit this stage")
     form: SubmitStageForm
-    if request.method == "POST":
-        form = SubmitStageForm(request.POST, request.FILES, instance=target)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(
-                reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": target.pk})
-            )
-    else:
-        form = SubmitStageForm(instance=target)
+    match request.method:
+        case "GET" | "HEAD":
+            form = SubmitStageForm(instance=target)
+        case "POST":
+            form = SubmitStageForm(request.POST, request.FILES, instance=target)
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect(
+                    reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": target.pk})
+                )
+        case _:
+            raise ValueError("invalid request method")
     return render(
         request, "kororinpa_stage_hub/edit.html", {"form": form, "submission": target}
     )
 
 
+@require_safe
 @login_required
 def delete_stage(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Submission] = get_object_or_404(Submission, id=pk)
@@ -114,6 +119,7 @@ def delete_stage(request: HttpRequest, pk: int) -> HttpResponse:
     return render(request, "kororinpa_stage_hub/delete.html", {"submission": target})
 
 
+@require_safe
 def download_stage(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Submission] = get_object_or_404(Submission, id=pk)
     target.stage_data.open("rb")
@@ -139,25 +145,30 @@ def download_stage(request: HttpRequest, pk: int) -> HttpResponse:
     return ret
 
 
+@require_http_methods({"GET", "HEAD", "POST"})
 @login_required
 def submit_stage(request: HttpRequest) -> HttpResponse:
     form: SubmitStageForm
-    if request.method == "POST":
-        form = SubmitStageForm(request.POST, request.FILES)
-        if form.is_valid():
-            new: Final[Submission] = form.save(False)
-            new.creator = request.user
-            new.save()
-            ret: HttpResponseRedirect = HttpResponseRedirect(
-                reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": new.pk})
-            )
-            ret.status_code = 303
-            return ret
-    else:
-        form = SubmitStageForm()
+    match request.method:
+        case "GET" | "HEAD":
+            form = SubmitStageForm()
+        case "POST":
+            form = SubmitStageForm(request.POST, request.FILES)
+            if form.is_valid():
+                new: Final[Submission] = form.save(False)
+                new.creator = request.user
+                new.save()
+                ret: HttpResponseRedirect = HttpResponseRedirect(
+                    reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": new.pk})
+                )
+                ret.status_code = 303
+                return ret
+        case _:
+            raise ValueError("invalid request method")
     return render(request, "kororinpa_stage_hub/new.html", {"form": form})
 
 
+@require_safe
 def search_stage(request: HttpRequest) -> HttpResponse:
     return render(
         request,
@@ -166,6 +177,7 @@ def search_stage(request: HttpRequest) -> HttpResponse:
     )
 
 
+@require_safe
 def search_results_stage(request: HttpRequest) -> HttpResponse:
     form: Final[SearchStageForm] = SearchStageForm(request.GET)
     if not form.is_valid():
