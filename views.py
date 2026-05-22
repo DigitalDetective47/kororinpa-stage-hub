@@ -11,6 +11,7 @@ from django.http import (
     HttpResponseRedirect,
 )
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils.text import slugify
 from koro import BinSlot
 
@@ -60,7 +61,9 @@ def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
         form = SubmitStageForm(request.POST, request.FILES, instance=target)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(f"/kororinpa/stage/{target.id}")  # type: ignore[attr-defined]
+            return HttpResponseRedirect(
+                reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": target.pk})
+            )
     else:
         form = SubmitStageForm(instance=target)
     return render(
@@ -121,7 +124,9 @@ def submit_stage(request: HttpRequest) -> HttpResponse:
             new: Final[Submission] = form.save(False)
             new.creator = request.user
             new.save()
-            return HttpResponseRedirect(f"/kororinpa/stage/{new.id}")  # type: ignore[attr-defined]
+            return HttpResponseRedirect(
+                reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": new.pk})
+            )
     else:
         form = SubmitStageForm()
     return render(request, "kororinpa_stage_hub/new.html", {"form": form})
@@ -139,7 +144,7 @@ def search_results_stage(request: HttpRequest) -> HttpResponse:
     form: Final[SearchStageForm] = SearchStageForm(request.GET)
     if not form.is_valid():
         return HttpResponseRedirect(
-            f"/kororinpa/stages/search?{request.GET.urlencode()}", True
+            reverse("kororinpa_stage_hub:search_stage", query=request.GET)
         )
     query: QuerySet = Submission.objects.order_by(
         ("-" if form.cleaned_data["sort_direction"] == "desc" else "")
