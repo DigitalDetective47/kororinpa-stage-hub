@@ -148,9 +148,11 @@ def submit_stage(request: HttpRequest) -> HttpResponse:
             new: Final[Submission] = form.save(False)
             new.creator = request.user
             new.save()
-            return HttpResponseRedirect(
+            ret: HttpResponseRedirect = HttpResponseRedirect(
                 reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": new.pk})
             )
+            ret.status_code = 303
+            return ret
     else:
         form = SubmitStageForm()
     return render(request, "kororinpa_stage_hub/new.html", {"form": form})
