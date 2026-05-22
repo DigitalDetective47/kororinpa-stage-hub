@@ -1,6 +1,6 @@
 from functools import reduce
 from operator import and_, or_
-from typing import Final, cast
+from typing import Any, Final, cast
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Case, F, Q, QuerySet, When
@@ -51,10 +51,10 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
         case "DELETE":
 
             @login_required
-            def delete_req(irequest: HttpRequest) -> HttpResponse:
+            def delete_req(dummy: Any) -> HttpResponse:
                 if (
-                    target.creator != irequest.user
-                    and not irequest.user.has_perm(  # type: ignore[union-attr]
+                    target.creator != request.user
+                    and not request.user.has_perm(  # type: ignore[union-attr]
                         "kororinpa_stage_hub.delete_submission"
                     )
                 ):
@@ -62,7 +62,7 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
                         "You must be the owner of this stage or an administrator to delete it"
                     )
                 ret: HttpResponse = render(
-                    irequest,
+                    request,
                     "kororinpa_stage_hub/post_delete.html",
                     {"name": target.name},
                 )
