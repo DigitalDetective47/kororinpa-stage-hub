@@ -3,6 +3,7 @@ from operator import and_, or_
 from typing import Final, cast
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.db.models import Case, F, Q, QuerySet, When
 from django.http import (
     HttpRequest,
@@ -31,14 +32,14 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
             "edit_permission": request.user.is_authenticated
             and (
                 target.creator == request.user
-                or request.user.has_perm(  # type: ignore[attr-defined]
+                or cast(User, request.user).has_perm(
                     "kororinpa_stage_hub.change_submission"
                 )
             ),
             "delete_permission": request.user.is_authenticated
             and (
                 target.creator == request.user
-                or request.user.has_perm(  # type: ignore[attr-defined]
+                or cast(User, request.user).has_perm(
                     "kororinpa_stage_hub.delete_submission"
                 )
             ),
@@ -49,11 +50,8 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Submission] = get_object_or_404(Submission, id=pk)
-    if (
-        target.creator != request.user
-        and not request.user.has_perm(  # type: ignore[union-attr]
-            "kororinpa_stage_hub.change_submission"
-        )
+    if target.creator != request.user and not cast(User, request.user).has_perm(
+        "kororinpa_stage_hub.change_submission"
     ):
         return HttpResponseForbidden("You do not have permission to edit this stage")
     form: SubmitStageForm
@@ -74,11 +72,8 @@ def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def delete_stage(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Submission] = get_object_or_404(Submission, id=pk)
-    if (
-        target.creator != request.user
-        and not request.user.has_perm(  # type: ignore[union-attr]
-            "kororinpa_stage_hub.delete_submission"
-        )
+    if target.creator != request.user and not cast(User, request.user).has_perm(
+        "kororinpa_stage_hub.delete_submission"
     ):
         return HttpResponseForbidden("You do not have permission to delete this stage")
     if request.method == "POST":
