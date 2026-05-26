@@ -1,7 +1,8 @@
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from csv import DictReader
+from functools import partial
 from itertools import tee
-from typing import Any, Final, cast
+from typing import Any, Final
 
 from django.contrib.auth.models import User
 from django.db.models import (
@@ -25,18 +26,15 @@ from django.urls import reverse
 from koro import BinSlot
 
 with open("kororinpa_stage_hub/music.csv", newline="") as f:
-    readers: Final[tuple[Iterator[Mapping[str, str]], Iterator[Mapping[str, str]]]] = (
-        cast(
-            tuple[Iterator[Mapping[str, str]], Iterator[Mapping[str, str]]],
-            tee(DictReader(f)),
-        )
+    get_reader: Final[Callable[[], Iterator[Mapping[str, str]]]] = partial(
+        next, iter(tee(DictReader(f)))
     )
 
     music_choices: Final[Mapping[int, str]] = {
-        i: row["Title"] for i, row in enumerate(readers[0])
+        i: row["Title"] for i, row in enumerate(get_reader())
     }
     music_ytids: Final[Sequence[str]] = tuple(
-        row["YouTube Video ID"] for row in readers[1]
+        row["YouTube Video ID"] for row in get_reader()
     )
 
 
