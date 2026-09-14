@@ -33,14 +33,14 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
             and (
                 target.creator == request.user
                 or cast(User, request.user).has_perm(
-                    "kororinpa_stage_hub.change_submission"
+                    "kororinpa_stage_hub.change_stage"
                 )
             ),
             "delete_permission": request.user.is_authenticated
             and (
                 target.creator == request.user
                 or cast(User, request.user).has_perm(
-                    "kororinpa_stage_hub.delete_submission"
+                    "kororinpa_stage_hub.delete_stage"
                 )
             ),
         },
@@ -51,7 +51,7 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
 def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Stage] = get_object_or_404(Stage, id=pk)
     if target.creator != request.user and not cast(User, request.user).has_perm(
-        "kororinpa_stage_hub.change_submission"
+        "kororinpa_stage_hub.change_stage"
     ):
         return HttpResponseForbidden("You do not have permission to edit this stage")
     form: SubmitStageForm
@@ -73,7 +73,7 @@ def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
 def delete_stage(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Stage] = get_object_or_404(Stage, id=pk)
     if target.creator != request.user and not cast(User, request.user).has_perm(
-        "kororinpa_stage_hub.delete_submission"
+        "kororinpa_stage_hub.delete_stage"
     ):
         return HttpResponseForbidden("You do not have permission to delete this stage")
     if request.method == "POST":
