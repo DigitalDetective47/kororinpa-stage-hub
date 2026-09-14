@@ -10,12 +10,12 @@ from django.forms import (
     RadioSelect,
 )
 
-from .models import Submission
+from .models import Stage
 
 
 class SubmitStageForm(ModelForm):
     class Meta:
-        model = Submission
+        model = Stage
         fields = ["name", "stage_data", "embed", "description", "music"]
 
 

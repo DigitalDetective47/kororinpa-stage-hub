@@ -1,5 +1,5 @@
 from django.contrib.admin import site
 
-from .models import Submission
+from .models import Stage
 
-site.register(Submission)
+site.register(Stage)

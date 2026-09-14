@@ -38,7 +38,7 @@ with open("kororinpa_stage_hub/music.csv", newline="") as f:
     )
 
 
-class Submission(Model):
+class Stage(Model):
     name: CharField = CharField(max_length=255)
     stage_data: FileField = FileField()
     creator: ForeignKey = ForeignKey(User, on_delete=RESTRICT)
@@ -67,13 +67,13 @@ class Submission(Model):
         return reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": self.pk})
 
 
-@receiver(pre_save, sender=Submission)
-def set_dates(sender: Any, instance: Submission, **kwargs: Any) -> None:
+@receiver(pre_save, sender=Stage)
+def set_dates(sender: Any, instance: Stage, **kwargs: Any) -> None:
     instance.updated = Now()
 
 
-@receiver(post_save, sender=Submission)
-def fix_xmls(sender: Any, instance: Submission, **kwargs: Any) -> None:
+@receiver(post_save, sender=Stage)
+def fix_xmls(sender: Any, instance: Stage, **kwargs: Any) -> None:
     instance.stage_data.open("rb")
     if instance.stage_data.read(1)[0]:
         instance.stage_data.open("rb")
