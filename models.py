@@ -64,7 +64,7 @@ class Stage(Model):
         return self.name
 
     def get_absolute_url(self) -> str:
-        return reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": self.pk})
+        return reverse("kororinpa_stage_hub:stage/view", kwargs={"pk": self.pk})
 
 
 @receiver(pre_save, sender=Stage)

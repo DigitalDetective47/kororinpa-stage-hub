@@ -16,11 +16,11 @@ from django.urls import reverse
 from django.utils.text import slugify
 from koro import BinSlot
 
-from .forms import SearchStageForm, SubmitStageForm
-from .models import Stage, music_choices, music_ytids
+from ..forms import SearchStageForm, SubmitStageForm
+from ..models import Stage, music_choices, music_ytids
 
 
-def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
+def view(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Stage] = get_object_or_404(Stage, id=pk)
     return render(
         request,
@@ -48,7 +48,7 @@ def view_stage(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 @login_required
-def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
+def edit(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Stage] = get_object_or_404(Stage, id=pk)
     if target.creator != request.user and not cast(User, request.user).has_perm(
         "kororinpa_stage_hub.change_stage"
@@ -60,7 +60,7 @@ def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(
-                reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": target.pk})
+                reverse("kororinpa_stage_hub:stage/view", kwargs={"pk": target.pk})
             )
     else:
         form = SubmitStageForm(instance=target)
@@ -70,7 +70,7 @@ def edit_stage(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 @login_required
-def delete_stage(request: HttpRequest, pk: int) -> HttpResponse:
+def delete(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Stage] = get_object_or_404(Stage, id=pk)
     if target.creator != request.user and not cast(User, request.user).has_perm(
         "kororinpa_stage_hub.delete_stage"
@@ -85,7 +85,7 @@ def delete_stage(request: HttpRequest, pk: int) -> HttpResponse:
     return render(request, "kororinpa_stage_hub/delete.html", {"submission": target})
 
 
-def download_stage(request: HttpRequest, pk: int) -> HttpResponse:
+def download(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Stage] = get_object_or_404(Stage, id=pk)
     target.stage_data.open("rb")
     content: Final[bytes] = target.stage_data.read()
@@ -111,7 +111,7 @@ def download_stage(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 @login_required
-def submit_stage(request: HttpRequest) -> HttpResponse:
+def submit(request: HttpRequest) -> HttpResponse:
     form: SubmitStageForm
     if request.method == "POST":
         form = SubmitStageForm(request.POST, request.FILES)
@@ -120,7 +120,7 @@ def submit_stage(request: HttpRequest) -> HttpResponse:
             new.creator = request.user
             new.save()
             ret: HttpResponseRedirect = HttpResponseRedirect(
-                reverse("kororinpa_stage_hub:view_stage", kwargs={"pk": new.pk})
+                reverse("kororinpa_stage_hub:stage/view", kwargs={"pk": new.pk})
             )
             ret.status_code = 303
             return ret
@@ -129,7 +129,7 @@ def submit_stage(request: HttpRequest) -> HttpResponse:
     return render(request, "kororinpa_stage_hub/new.html", {"form": form})
 
 
-def search_stage(request: HttpRequest) -> HttpResponse:
+def search(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "kororinpa_stage_hub/search.html",
@@ -137,11 +137,11 @@ def search_stage(request: HttpRequest) -> HttpResponse:
     )
 
 
-def search_results_stage(request: HttpRequest) -> HttpResponse:
+def search_results(request: HttpRequest) -> HttpResponse:
     form: Final[SearchStageForm] = SearchStageForm(request.GET)
     if not form.is_valid():
         return HttpResponseRedirect(
-            reverse("kororinpa_stage_hub:search_stage", query=request.GET)
+            reverse("kororinpa_stage_hub:stage/search", query=request.GET)
         )
     query: QuerySet = Stage.objects.order_by(
         ("-" if form.cleaned_data["sort_direction"] == "desc" else "")
