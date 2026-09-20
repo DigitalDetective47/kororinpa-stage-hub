@@ -24,7 +24,7 @@ def view(request: HttpRequest, pk: int) -> HttpResponse:
     target: Final[Stage] = get_object_or_404(Stage, id=pk)
     return render(
         request,
-        "kororinpa_stage_hub/index.html",
+        "kororinpa_stage_hub/stage/view.html",
         {
             "submission": target,
             "track_id": music_ytids[target.music],
@@ -65,7 +65,7 @@ def edit(request: HttpRequest, pk: int) -> HttpResponse:
     else:
         form = SubmitStageForm(instance=target)
     return render(
-        request, "kororinpa_stage_hub/edit.html", {"form": form, "submission": target}
+        request, "kororinpa_stage_hub/stage/edit.html", {"form": form, "submission": target}
     )
 
 
@@ -78,11 +78,11 @@ def delete(request: HttpRequest, pk: int) -> HttpResponse:
         return HttpResponseForbidden("You do not have permission to delete this stage")
     if request.method == "POST":
         ret: HttpResponse = render(
-            request, "kororinpa_stage_hub/post_delete.html", {"name": target.name}
+            request, "kororinpa_stage_hub/stage/post_delete.html", {"name": target.name}
         )
         target.delete()
         return ret
-    return render(request, "kororinpa_stage_hub/delete.html", {"submission": target})
+    return render(request, "kororinpa_stage_hub/stage/delete.html", {"submission": target})
 
 
 def download(request: HttpRequest, pk: int) -> HttpResponse:
@@ -126,13 +126,13 @@ def submit(request: HttpRequest) -> HttpResponse:
             return ret
     else:
         form = SubmitStageForm()
-    return render(request, "kororinpa_stage_hub/new.html", {"form": form})
+    return render(request, "kororinpa_stage_hub/stage/new.html", {"form": form})
 
 
 def search(request: HttpRequest) -> HttpResponse:
     return render(
         request,
-        "kororinpa_stage_hub/search.html",
+        "kororinpa_stage_hub/stage/search.html",
         {"form": SearchStageForm(request.GET or None)},
     )
 
@@ -212,7 +212,7 @@ def search_results(request: HttpRequest) -> HttpResponse:
                     query = query.filter(name__iregex=form.cleaned_data["name"])
     return render(
         request,
-        "kororinpa_stage_hub/search_results.html",
+        "kororinpa_stage_hub/stage/search_results.html",
         {
             "query": request.GET.urlencode,
             "results": query.values(
