@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "kororinpa_stage_hub/base.html" %}
 {% block title %}Editing {{ submission.name }}{% endblock %}
-{% block content %}
+{% block inner %}
 <h1 style="text-align:center;">Editing {{ submission.name }}</h1>
 <form action="{% url "kororinpa_stage_hub:stage/edit" submission.id %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}

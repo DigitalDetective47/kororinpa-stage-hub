@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "kororinpa_stage_hub/base.html" %}
 {% block title %}{{ submission.name }}{% endblock %}
-{% block content %}
+{% block inner %}
 <h1 style="margin-bottom:0px;text-align:center;">{{ submission.name }}</h1>
 <p style="margin-bottom:0px;margin-top:0px;text-align:center;">By {{ submission.creator.username }}</p>
 {% if submission.updated == submission.released %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+    <nav style="border-bottom: solid; box-sizing: border-box; height: 40pt; left: 0; padding-left: 8px; padding-right: 8px; position: fixed; top: 0; width: 100%;">
+    {% if user.is_authenticated %}
+    <form action="{% url 'logout' %}" method="post" name="logout">
+        {% csrf_token %}
+        <p style="float: right; margin-left: 8px; margin-right: 8px;"s><a href="javascript: document.logout.submit();">Log out</a></p>
+    <form>
+    <p style="float: right; margin-left: 8px; margin-right: 8px;">Logged in as {{ user.username }}</p>
+    {% else %}
+    <p style="float: right; margin-left: 8px; margin-right: 8px;"><a href="{% url 'login' %}">Log in</a></p>
+    <p style="float: right; margin-left: 8px; margin-right: 8px;"><a href="{% url 'signup' %}">Sign up</a></p>
+    {%endif%}
+    </nav>
+    <div style="padding-top: 40pt;">
+        {% block inner %}
+        {% endblock %}
+    </div>
+{% endblock %}

@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "kororinpa_stage_hub/base.html" %}
 {% block title %}Search Results{% endblock %}
-{% block content %}
+{% block inner %}
 <h2><a href="{% url 'kororinpa_stage_hub:stage/search' %}?{{ query }}">Refine your search&hellip;</a></h2>
 {% if results %}
     {% for submission in results %}
