@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <nav style="border-bottom: solid; box-sizing: border-box; height: 40pt; left: 0; padding-left: 8px; padding-right: 8px; position: fixed; top: 0; width: 100%;">
+    <p style="float: left; margin-left: 8px; margin-right: 8px;"><a href="{% url 'kororinpa_stage_hub:home' %}">Home</a></p>
     <p style="float: left; margin-left: 8px; margin-right: 8px;"><b>Search:</b></p>
     <p style="float: left; margin-left: 8px; margin-right: 8px;"><a href="{% url 'kororinpa_stage_hub:stage/search' %}">Stages</a></p>
     {% if user.is_authenticated %}

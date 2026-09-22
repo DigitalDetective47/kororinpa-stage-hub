@@ -1,0 +1,6 @@
+{% extends "kororinpa_stage_hub/base.html" %}
+{% block title %}Kororinpa Stage Hub{% endblock %}
+{% block inner %}
+<h1>Welcome to the Kororinpa Stage Hub</h1>
+<p>We are currently hosting <strong>{{ stage_count }}</strong> stage{% if stage_count != 1 %}s{% endif %} created by <strong>{{ stage_author_count }}</strong> user{% if stage_author_count != 1 %}s{% endif %}!</p>
+{% endblock %}
